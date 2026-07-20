@@ -454,16 +454,37 @@ body {
 /* ── ДОСТУП К УДАЛЕНИЮ СТРОКИ БЕЗ HOVER (тач-экраны, клавиатура) ── */
 .price-row:focus-within .row-del { opacity: 1; }
 @media (hover: none) {
-  .row-del { opacity: 1; }
+  /* На тач-экранах кнопка всегда видна и контр-масштабируется,
+     чтобы не сжиматься вместе с уменьшенным превью карточки */
+  .row-del {
+    opacity: 1;
+    color: #e53e3e;
+    border-color: #e53e3e;
+    transform: translateY(-50%) scale(calc(1 / var(--card-scale, 1)));
+    transform-origin: right center;
+  }
 }
 
 /* ── МОБИЛЬНАЯ АДАПТАЦИЯ ── */
 @media (max-width: 800px) {
   body { padding: 16px 8px 28px; }
-  .ui { gap: 10px; margin-bottom: 16px; }
-  .ui-note { font-size: 11px; padding: 0 8px; }
-  .btn { padding: 11px 22px; font-size: 13px; }  /* крупнее для пальца */
+  .ui { gap: 14px; margin-bottom: 18px; width: 100%; }
+  .ui-note {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    padding: 0 8px;
+  }
+  .ui-row { width: 100%; gap: 10px; }
+  /* Крупные «пальцевые» кнопки */
+  .btn {
+    flex: 1 1 auto;
+    min-width: 150px;
+    padding: 15px 20px;
+    font-size: 16px;
+    border-radius: 14px;
+  }
   .photo-switcher-label { display: none; }
+  .photo-thumb { width: 44px; height: 58px; }
   /* превью вписывается в ширину экрана (дублирует JS, чтобы не мигало при загрузке) */
   .scale-wrap {
     width: calc(100vw - 16px);
@@ -485,7 +506,7 @@ body {
 
 <div class="ui">
   <p class="ui-note">
-    ✦ Кликайте на любое поле для редактирования · Наведите на строку чтобы удалить
+    ✦ Нажмите на любое поле, чтобы редактировать · Кнопка ✕ справа от строки — удалить
   </p>
 
   <!-- Переключатель фона -->
@@ -700,11 +721,13 @@ function applyScale() {
     wrap.style.height = (1600 * s) + 'px';
     pos.style.transform = `scale(${s})`;
     pos.style.position = 'absolute';
+    document.documentElement.style.setProperty('--card-scale', s);
   } else {
     wrap.style.width  = '1200px';
     wrap.style.height = '1600px';
     pos.style.transform = 'scale(1)';
     pos.style.position = 'relative';
+    document.documentElement.style.setProperty('--card-scale', 1);
   }
 }
 
