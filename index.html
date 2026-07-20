@@ -741,6 +741,7 @@ async function exportJPEG() {
 // ── ФОРМАТЫ ВВОДА ──
 function attachPriceFormat(inp) {
   inp.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) return; // не мешаем copy/paste/select-all
     const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter','Home','End'];
     if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
     if (e.key === 'Enter') this.blur();
@@ -803,6 +804,7 @@ document.querySelectorAll('.row-model').forEach(inp => {
 // Маска даты DD.MM.YYYY
 document.querySelectorAll('.badge-date').forEach(inp => {
   inp.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) return; // не мешаем copy/paste/select-all
     const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
     if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
   });
