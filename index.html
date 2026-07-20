@@ -410,6 +410,67 @@ body {
 /* ── ЭКСПОРТ — скрытые элементы ── */
 .export-hide { transition: opacity 0.1s; }
 
+/* ── ОВЕРЛЕЙ СОХРАНЕНИЯ (моб. Safari) ── */
+.save-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+}
+.save-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 100%;
+}
+.save-hint {
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.5;
+  max-width: 360px;
+}
+.save-img {
+  max-width: 100%;
+  max-height: 62vh;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.save-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── ДОСТУП К УДАЛЕНИЮ СТРОКИ БЕЗ HOVER (тач-экраны, клавиатура) ── */
+.price-row:focus-within .row-del { opacity: 1; }
+@media (hover: none) {
+  .row-del { opacity: 1; }
+}
+
+/* ── МОБИЛЬНАЯ АДАПТАЦИЯ ── */
+@media (max-width: 800px) {
+  body { padding: 16px 8px 28px; }
+  .ui { gap: 10px; margin-bottom: 16px; }
+  .ui-note { font-size: 11px; padding: 0 8px; }
+  .btn { padding: 11px 22px; font-size: 13px; }  /* крупнее для пальца */
+  .photo-switcher-label { display: none; }
+  /* превью вписывается в ширину экрана (дублирует JS, чтобы не мигало при загрузке) */
+  .scale-wrap {
+    width: calc(100vw - 16px);
+    height: calc((100vw - 16px) * 1.33333);
+  }
+}
+
 /* ── PRINT ── */
 @media print {
   body { background: white; padding: 0; }
@@ -622,16 +683,22 @@ function updateAddBtn() {
 
 // ── SCALE ──
 let scaled = true;
-const SCALE = 0.625;
+const PREVIEW_MAX = 750; // макс. ширина превью на десктопе (1200 × 0.625)
 
-function toggleScale() {
-  scaled = !scaled;
+// Масштаб превью: вписываем в ширину экрана, но не больше PREVIEW_MAX
+function previewScale() {
+  const w = Math.min(PREVIEW_MAX, window.innerWidth - 16);
+  return w / 1200;
+}
+
+function applyScale() {
   const wrap = document.getElementById('scaleWrap');
   const pos  = document.getElementById('cardPos');
   if (scaled) {
-    wrap.style.width  = '750px';
-    wrap.style.height = '1000px';
-    pos.style.transform = `scale(${SCALE})`;
+    const s = previewScale();
+    wrap.style.width  = (1200 * s) + 'px';
+    wrap.style.height = (1600 * s) + 'px';
+    pos.style.transform = `scale(${s})`;
     pos.style.position = 'absolute';
   } else {
     wrap.style.width  = '1200px';
@@ -640,6 +707,15 @@ function toggleScale() {
     pos.style.position = 'relative';
   }
 }
+
+function toggleScale() {
+  scaled = !scaled;
+  applyScale();
+}
+
+// Пересчёт масштаба при загрузке и повороте/ресайзе экрана
+window.addEventListener('resize', () => { if (scaled) applyScale(); });
+applyScale();
 
 // ── JPEG EXPORT ──
 async function exportJPEG() {
@@ -723,10 +799,7 @@ async function exportJPEG() {
         });
       }
     });
-    const link = document.createElement('a');
-    link.download = 'specprice_daichi.jpg';
-    link.href = canvas.toDataURL('image/jpeg', 0.95);
-    link.click();
+    await saveCanvas(canvas);
   } catch(e) {
     alert('Ошибка: ' + e.message);
   }
@@ -736,6 +809,87 @@ async function exportJPEG() {
   if (wasScaled) toggleScale();
   btn.textContent = '💾 Сохранить JPEG';
   btn.disabled = false;
+}
+
+// ── СОХРАНЕНИЕ КАРТИНКИ (кросс-платформенно, включая iOS Safari) ──
+function isIOS() {
+  return /iP(hone|od|ad)/.test(navigator.userAgent) ||
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function saveCanvas(canvas) {
+  return new Promise(resolve => {
+    canvas.toBlob(blob => {
+      const fileName = 'specprice_daichi.jpg';
+      if (!blob) { // крайний фолбэк
+        showSaveOverlay(canvas.toDataURL('image/jpeg', 0.95), null);
+        return resolve();
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      // Десктоп: обычное скачивание. iOS игнорирует download → идём в оверлей.
+      if (('download' in a) && !isIOS()) {
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        return resolve();
+      }
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
+      const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+      showSaveOverlay(url, canShare ? file : null);
+      resolve();
+    }, 'image/jpeg', 0.95);
+  });
+}
+
+// Оверлей с готовой картинкой — для сохранения на телефоне
+function showSaveOverlay(imgUrl, shareFile) {
+  const ov = document.createElement('div');
+  ov.className = 'save-overlay';
+
+  const box = document.createElement('div');
+  box.className = 'save-box';
+
+  const hint = document.createElement('p');
+  hint.className = 'save-hint';
+  hint.textContent = shareFile
+    ? 'Нажмите «Сохранить в Фото» — или удерживайте картинку и выберите «Добавить в фото».'
+    : 'Удерживайте картинку и выберите «Добавить в фото».';
+
+  const img = document.createElement('img');
+  img.className = 'save-img';
+  img.src = imgUrl;
+
+  const btns = document.createElement('div');
+  btns.className = 'save-btns';
+
+  if (shareFile) {
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'btn btn-dark';
+    shareBtn.textContent = '📤 Сохранить в Фото';
+    shareBtn.onclick = async () => {
+      try { await navigator.share({ files: [shareFile] }); } catch (e) {}
+    };
+    btns.appendChild(shareBtn);
+  }
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn btn-light';
+  closeBtn.textContent = 'Закрыть';
+  closeBtn.onclick = () => {
+    ov.remove();
+    if (imgUrl.startsWith('blob:')) URL.revokeObjectURL(imgUrl);
+  };
+  btns.appendChild(closeBtn);
+
+  box.appendChild(hint);
+  box.appendChild(img);
+  box.appendChild(btns);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
 }
 
 // ── ФОРМАТЫ ВВОДА ──
