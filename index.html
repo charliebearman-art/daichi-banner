@@ -978,7 +978,14 @@ async function exportJPEG() {
       height: 1600,
       windowWidth: 1200,
       logging: false,
+      // Не тащим в клон служебный UI (кнопки + сетка городов с 8 внешними картинками) —
+      // именно их загрузка подвешивала html2canvas на iOS
+      ignoreElements: (el) => el.classList && (
+        el.classList.contains('ui') ||
+        el.classList.contains('save-overlay')
+      ),
       onclone: function(clonedDoc) {
+        _step('onclone (клон готов)');
         // Заменяем каждый <input> на <div> с его значением — html2canvas рендерит текст корректно
         const clonedInputs = [...clonedDoc.querySelectorAll('input[type="text"]')];
         clonedInputs.forEach((inp, i) => {
