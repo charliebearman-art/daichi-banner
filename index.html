@@ -873,21 +873,32 @@ applyScale();
 // проблем (критично для мобильного Safari). Заодно ждём полной загрузки картинки.
 function backgroundToDataURL(img) {
   return new Promise(resolve => {
-    if (!img) return resolve(null);
-    const src = img.currentSrc || img.src;
-    if (!src || src.startsWith('data:')) return resolve(null);
-    const im = new Image();
-    im.onload = () => {
+    let done = false;
+    const finish = (v) => { if (!done) { done = true; resolve(v); } };
+    const toURL = (source) => {
       try {
+        const w = source.naturalWidth || 1200;
+        const h = source.naturalHeight || 1600;
         const c = document.createElement('canvas');
-        c.width = im.naturalWidth || 1200;
-        c.height = im.naturalHeight || 1600;
-        c.getContext('2d').drawImage(im, 0, 0);
-        resolve(c.toDataURL('image/jpeg', 0.92));
-      } catch (e) { resolve(null); }
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(source, 0, 0, w, h);
+        finish(c.toDataURL('image/jpeg', 0.92));
+      } catch (e) { finish(null); }
     };
-    im.onerror = () => resolve(null);
-    im.src = src;
+    try {
+      if (!img) return finish(null);
+      const src = img.currentSrc || img.src;
+      if (!src || src.startsWith('data:')) return finish(null);
+      // Фон обычно уже загружен в DOM — рисуем прямо из него (без событий load)
+      if (img.complete && img.naturalWidth > 0) return toURL(img);
+      // Иначе догружаем отдельным экземпляром
+      const im = new Image();
+      im.onload = () => toURL(im);
+      im.onerror = () => finish(null);
+      im.src = src;
+    } catch (e) { finish(null); }
+    // Страховка: никогда не висим дольше 4с
+    setTimeout(() => finish(null), 4000);
   });
 }
 
@@ -942,11 +953,11 @@ async function exportJPEG() {
   const bgDataUrl = await backgroundToDataURL(photoImg);
   if (bgDataUrl) {
     photoImg.src = bgDataUrl;
-    if (photoImg.decode) { try { await photoImg.decode(); } catch (e) {} }
+    await new Promise(r => setTimeout(r, 60)); // даём DOM применить новый src (без decode — он виснет на iOS)
   }
 
   try {
-    const canvas = await html2canvas(document.getElementById('cardInner'), {
+    const canvas = await Promise.race([html2canvas(document.getElementById('cardInner'), {
       scale: 2,
       useCORS: true,
       allowTaint: true,
@@ -980,7 +991,7 @@ async function exportJPEG() {
           inp.parentNode.replaceChild(div, inp);
         });
       }
-    });
+    }), new Promise((_, rej) => setTimeout(() => rej(new Error('Таймаут рендеринга (20с)')), 20000))]);
     await saveCanvas(canvas);
   } catch(e) {
     alert('Ошибка: ' + e.message);
