@@ -868,6 +868,29 @@ window.addEventListener('resize', () => { if (scaled) applyScale(); });
 applyScale();
 
 // ── JPEG EXPORT ──
+// Готовим фон к экспорту: грузим свежий экземпляр и переводим в data-URI.
+// same-origin canvas не «пачкается», поэтому html2canvas рендерит без CORS/taint
+// проблем (критично для мобильного Safari). Заодно ждём полной загрузки картинки.
+function backgroundToDataURL(img) {
+  return new Promise(resolve => {
+    if (!img) return resolve(null);
+    const src = img.currentSrc || img.src;
+    if (!src || src.startsWith('data:')) return resolve(null);
+    const im = new Image();
+    im.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = im.naturalWidth || 1200;
+        c.height = im.naturalHeight || 1600;
+        c.getContext('2d').drawImage(im, 0, 0);
+        resolve(c.toDataURL('image/jpeg', 0.92));
+      } catch (e) { resolve(null); }
+    };
+    im.onerror = () => resolve(null);
+    im.src = src;
+  });
+}
+
 async function exportJPEG() {
   const btn = document.querySelector('.btn-dark');
   btn.textContent = 'Рендеринг…';
@@ -913,6 +936,15 @@ async function exportJPEG() {
     };
   });
 
+  // Инлайним фон в data-URI, чтобы html2canvas не упирался в CORS/taint (особенно iOS)
+  const photoImg = document.getElementById('photoImg');
+  const origPhotoSrc = photoImg ? photoImg.getAttribute('src') : null;
+  const bgDataUrl = await backgroundToDataURL(photoImg);
+  if (bgDataUrl) {
+    photoImg.src = bgDataUrl;
+    if (photoImg.decode) { try { await photoImg.decode(); } catch (e) {} }
+  }
+
   try {
     const canvas = await html2canvas(document.getElementById('cardInner'), {
       scale: 2,
@@ -954,7 +986,8 @@ async function exportJPEG() {
     alert('Ошибка: ' + e.message);
   }
 
-  // Возврат — восстанавливаем исходный display
+  // Возврат — восстанавливаем внешний src фона и исходный display
+  if (photoImg && origPhotoSrc) photoImg.src = origPhotoSrc;
   exportHideEls.forEach((el, i) => el.style.display = exportHideDisplays[i]);
   if (wasScaled) toggleScale();
   btn.textContent = '💾 Сохранить JPEG';
