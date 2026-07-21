@@ -907,6 +907,15 @@ async function exportJPEG() {
   btn.textContent = 'Рендеринг…';
   btn.disabled = true;
 
+  // Диагностика: лог шагов с таймингами (показывается в модалке при ошибке)
+  const _t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+  const _log = [];
+  const _step = (m) => {
+    const now = (window.performance && performance.now) ? performance.now() : Date.now();
+    _log.push(Math.round(now - _t0) + 'мс · ' + m);
+  };
+  _step('старт');
+
   // Ждём шрифты
   await document.fonts.ready;
   await new Promise(r => setTimeout(r, 500));
@@ -951,16 +960,19 @@ async function exportJPEG() {
   const photoImg = document.getElementById('photoImg');
   const origPhotoSrc = photoImg ? photoImg.getAttribute('src') : null;
   const bgDataUrl = await backgroundToDataURL(photoImg);
+  _step('фон: ' + (bgDataUrl ? Math.round(bgDataUrl.length / 1024) + 'КБ data-URI' : 'NULL (внешний src)'));
   if (bgDataUrl) {
     photoImg.src = bgDataUrl;
     await new Promise(r => setTimeout(r, 60)); // даём DOM применить новый src (без decode — он виснет на iOS)
   }
 
   try {
+    _step('html2canvas старт');
     const canvas = await Promise.race([html2canvas(document.getElementById('cardInner'), {
       scale: 2,
-      useCORS: true,
+      useCORS: false,      // фон уже инлайнен в data-URI → crossOrigin не нужен (он и подвешивал)
       allowTaint: true,
+      imageTimeout: 10000, // не ждём картинки дольше 10с
       backgroundColor: '#ffffff',
       width: 1200,
       height: 1600,
@@ -992,9 +1004,11 @@ async function exportJPEG() {
         });
       }
     }), new Promise((_, rej) => setTimeout(() => rej(new Error('Таймаут рендеринга (20с)')), 20000))]);
+    _step('canvas ' + canvas.width + '×' + canvas.height);
     await saveCanvas(canvas);
+    _step('сохранение ок');
   } catch(e) {
-    alert('Ошибка: ' + e.message);
+    alert('Ошибка: ' + e.message + '\n\nЛог:\n' + _log.join('\n'));
   }
 
   // Возврат — восстанавливаем внешний src фона и исходный display
