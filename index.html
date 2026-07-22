@@ -3,16 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Спецценник Даичи v3</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-// ── АВТО-ДАТА (dd.mm.yy) — поле остаётся редактируемым ──
-(function initDate() {
-  const d = new Date();
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(-2);
-  document.querySelectorAll('.badge-date').forEach(inp => { inp.value = dd + '.' + mm + '.' + yy; });
-})();
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 @font-face {
   font-family: 'Suisse Intl';
@@ -1190,6 +1181,15 @@ document.querySelectorAll('.badge-date').forEach(inp => {
     this.value = out;
   });
 });
+
+// ── АВТО-ДАТА (dd.mm.yy) — подставляем сегодняшнюю, поле остаётся редактируемым ──
+(function initDate() {
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  document.querySelectorAll('.badge-date').forEach(inp => { inp.value = dd + '.' + mm + '.' + yy; });
+})();
 </script>
 </body>
 </html>
