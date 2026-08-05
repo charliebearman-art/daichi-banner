@@ -65,6 +65,30 @@ body {
 .btn-dark { background: #1a1a1a; color: #fff; }
 .btn-light { background: rgba(255,255,255,0.85); color: #333; }
 
+/* ── ПЕРЕКЛЮЧАТЕЛЬ ВАЛЮТЫ ── */
+.cur-switch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 100px;
+}
+.cur-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 40px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: #8a94a2;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cur-btn:hover { color: #333; }
+.cur-btn.active { background: #1a1a1a; color: #fff; }
+
 /* ── SCALE WRAPPER ── */
 .scale-wrap {
   width: 750px;        /* 1200 × 0.625 */
@@ -751,6 +775,10 @@ body {
     </button>
     <button class="btn btn-dark" onclick="exportJPEG()">💾 Сохранить JPEG</button>
     <button class="btn btn-light" onclick="toggleScale()">1:1 / масштаб</button>
+    <div class="cur-switch" role="group" aria-label="Валюта">
+      <button class="cur-btn active" type="button" data-cur="RUB" title="Российский рубль">₽</button>
+      <button class="cur-btn" type="button" data-cur="BYN" title="Белорусский рубль">BYN</button>
+    </div>
   </div>
 
   <p class="ui-note no-export">
@@ -794,6 +822,13 @@ body {
 
       <!-- Прайс-лист -->
       <div class="price-list" id="priceList">
+
+        <div class="price-row">
+          <input class="row-model" type="text" value="DA20EVQ1R/DF20EV1R" placeholder="Модель"/>
+          <div class="row-dots"></div>
+          <input class="row-price" type="text" value="23 390 ₽" placeholder="0 000 ₽"/>
+          <button class="row-del export-hide" onclick="removeRow(this)">×</button>
+        </div>
 
         <div class="price-row">
           <input class="row-model" type="text" value="DA20EVQ1R/DF20EV1R" placeholder="Модель"/>
@@ -1062,7 +1097,7 @@ function switchPhoto(idx) {
 }
 
 // ── ROWS ──
-const MAX_ROWS = 4;
+const MAX_ROWS = 5;
 
 // ── ROWS ──
 function removeRow(btn) {
@@ -1084,9 +1119,11 @@ function addRow() {
     <button class="row-del export-hide" onclick="removeRow(this)">×</button>
   `;
   list.insertBefore(row, document.getElementById('rowAddBtn'));
-  attachPriceFormat(row.querySelector('.row-price'));
+  const priceInp = row.querySelector('.row-price');
+  priceInp.placeholder = '0 000 ' + curSymbol();   // новая строка — под текущую валюту
+  attachPriceFormat(priceInp);
   attachAutoWidth(row.querySelector('.row-model'), 700);
-  attachAutoWidth(row.querySelector('.row-price'),  252);
+  attachAutoWidth(priceInp,  252);
   updateAddBtn();
   row.querySelector('.row-model').focus();
 }
@@ -1396,10 +1433,35 @@ function attachPriceFormat(inp) {
   });
   inp.addEventListener('blur', function() {
     const n = parseInt(this.value.replace(/\D/g,''));
-    this.value = (!isNaN(n) && n > 0) ? n.toLocaleString('ru-RU') + ' ₽' : '';
+    this.value = (!isNaN(n) && n > 0) ? n.toLocaleString('ru-RU') + ' ' + curSymbol() : '';
   });
 }
 document.querySelectorAll('.row-price').forEach(attachPriceFormat);
+
+// ── ВАЛЮТА ──
+const CURRENCIES = { RUB: '₽', BYN: 'BYN' };
+let currency = 'RUB';               // по умолчанию — рубль
+function curSymbol() { return CURRENCIES[currency]; }
+
+// Переформатирует значение и плейсхолдер поля под текущую валюту
+function reformatPrice(inp) {
+  const sym = curSymbol();
+  inp.placeholder = '0 000 ' + sym;
+  const n = parseInt(inp.value.replace(/\D/g,''));
+  inp.value = (!isNaN(n) && n > 0) ? n.toLocaleString('ru-RU') + ' ' + sym : '';
+  syncInputWidth(inp, 252);         // BYN шире ₽ — подгоняем ширину
+}
+
+function setCurrency(cur) {
+  if (!CURRENCIES[cur]) return;
+  currency = cur;
+  document.querySelectorAll('.row-price').forEach(reformatPrice);
+  document.querySelectorAll('.cur-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.cur === cur));
+}
+
+document.querySelectorAll('.cur-btn').forEach(btn =>
+  btn.addEventListener('click', () => setCurrency(btn.dataset.cur)));
 
 // ── AUTO-WIDTH: инпут принимает ширину своего текста ──
 // Скрытый span-измеритель
