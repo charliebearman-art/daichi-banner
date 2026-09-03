@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конструктор акций — Primera</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ── ШРИФТ ── */
+@font-face {
+  font-family: 'Suisse Intl';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('promo-assets/fonts/suisse-intl-400.woff') format('woff');
+}
+@font-face {
+  font-family: 'Suisse Intl';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('promo-assets/fonts/suisse-intl-500.woff') format('woff');
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font: 'Suisse Intl', sans-serif;
+  --promo-bg: #29ba73;      /* зелёный фон акции */
+  --promo-fg: #ffffff;      /* цвет текста */
+  --card-w: 1080px;
+  --card-h: 1920px;
+}
+
+body {
+  background: #b0b5be;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 12px 40px;
+  font-family: var(--font);
+}
+
+/* ── ПРЕВЬЮ-МАСШТАБ ── */
+.scale-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.card-positioner {
+  width: var(--card-w);
+  height: var(--card-h);
+  transform-origin: top left;
+  position: absolute;
+  top: 0; left: 0;
+}
+
+/* ── КАРТОЧКА 1080×1920 ── */
+.promo-card {
+  width: var(--card-w);
+  height: var(--card-h);
+  position: relative;
+  overflow: hidden;
+  background: var(--promo-bg);
+  font-family: var(--font);
+  box-shadow: 0 32px 120px rgba(0,0,0,0.25);
+}
+
+/* Шапка — единое изображение */
+.promo-header {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1080px;
+  height: 713px;
+}
+.promo-header-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Логотип */
+.promo-logo {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 302px;
+  height: 64.06px;
+}
+.promo-logo img { width: 100%; height: 100%; display: block; object-fit: contain; object-position: center; }
+
+/* Контент */
+.promo-content {
+  position: absolute;
+  top: 793.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 952px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: stretch;
+}
+
+/* Шапка контента: бейдж + заголовок */
+.promo-head {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  width: 100%;
+}
+.promo-badge {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.promo-badge-icon {
+  width: 28px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--promo-fg);
+}
+.promo-badge-icon svg { height: 35.79px; width: auto; display: block; }
+.promo-badge-text {
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--promo-fg);
+  white-space: nowrap;
+  outline: none;
+}
+.promo-title {
+  font-weight: 500;
+  font-size: 64px;
+  line-height: 1.2;
+  color: var(--promo-fg);
+  text-align: center;
+  width: 100%;
+  outline: none;
+}
+
+/* Группы позиций */
+.promo-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  align-items: flex-start;
+  width: 100%;
+}
+.promo-group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+}
+.promo-group-title {
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--promo-fg);
+  width: 100%;
+  outline: none;
+}
+.promo-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+.promo-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+.promo-model {
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--promo-fg);
+  outline: none;
+}
+.promo-price {
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--promo-fg);
+  white-space: nowrap;
+  text-align: right;
+  outline: none;
+}
+
+/* Плейсхолдеры для пустых редактируемых полей */
+[contenteditable].promo-model:empty::before,
+[contenteditable].promo-price:empty::before,
+[contenteditable].promo-group-title:empty::before,
+[contenteditable].promo-title:empty::before,
+[contenteditable].promo-badge-text:empty::before {
+  content: attr(data-ph);
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── ИНЛАЙН-КОНТРОЛЫ РЕДАКТИРОВАНИЯ (не попадают в экспорт) ── */
+.promo-row { position: relative; }
+.p-row-del {
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.55);
+  background: rgba(0,0,0,0.18);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  font-family: var(--font);
+}
+.promo-row:hover .p-row-del,
+.promo-row:focus-within .p-row-del { opacity: 1; }
+.p-row-del:hover { background: rgba(229,62,62,0.9); border-color: #fff; }
+
+.p-add-row {
+  align-self: flex-start;
+  margin-top: 4px;
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border: 1.5px dashed rgba(255,255,255,0.55);
+  border-radius: 12px;
+  padding: 8px 18px;
+  font-size: 24px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.p-add-row:hover { background: rgba(255,255,255,0.26); }
+
+.promo-group { position: relative; }
+.p-group-del {
+  position: absolute;
+  right: -60px;
+  top: 4px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.55);
+  background: rgba(0,0,0,0.18);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  font-family: var(--font);
+}
+.promo-group:hover .p-group-del,
+.promo-group:focus-within .p-group-del { opacity: 1; }
+.p-group-del:hover { background: rgba(229,62,62,0.9); border-color: #fff; }
+
+.p-add-group {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border: 2px dashed rgba(255,255,255,0.55);
+  border-radius: 14px;
+  padding: 14px 26px;
+  font-size: 28px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.p-add-group:hover { background: rgba(255,255,255,0.26); }
+
+/* ── ТУЛБАР ── */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.tb-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  background: rgba(255,255,255,0.85);
+  color: #333;
+}
+.tb-btn:hover { opacity: 0.82; }
+.tb-note {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  font-family: var(--font);
+}
+.cur-switch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 100px;
+}
+.cur-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 44px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: #8a94a2;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cur-btn:hover { color: #333; }
+.cur-btn.active { background: #1a1a1a; color: #fff; }
+.tb-btn.tb-primary { background: #1a1a1a; color: #fff; }
+
+/* ── ПАНЕЛЬ КАСТОМИЗАЦИИ ── */
+.controls {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  max-width: 760px;
+}
+.ctrl { display: flex; align-items: center; gap: 8px; }
+.ctrl-label {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+}
+.swatches { display: flex; gap: 6px; }
+.swatch {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.5);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.swatch:hover { transform: scale(1.1); }
+.swatch.active { border-color: #fff; box-shadow: 0 0 0 2px #1a1a1a, 0 0 0 4px #fff; }
+.ctrl-color {
+  width: 30px; height: 30px;
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+}
+.ctrl-color::-webkit-color-swatch-wrapper { padding: 0; }
+.ctrl-color::-webkit-color-swatch { border: none; border-radius: 50%; }
+.logo-picks { display: flex; gap: 6px; }
+.logo-pick {
+  height: 34px;
+  padding: 4px 10px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.logo-pick img { height: 22px; width: auto; display: block; }
+.logo-pick.active { border-color: #1a1a1a; }
+.ctrl-upload {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  background: rgba(255,255,255,0.85);
+  padding: 8px 16px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.ctrl-upload:hover { opacity: 0.82; }
+.ctrl-upload input { display: none; }
+
+/* ── ОВЕРЛЕЙ СОХРАНЕНИЯ (моб. Safari) ── */
+.save-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+}
+.save-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 100%;
+}
+.save-hint {
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.5;
+  max-width: 360px;
+}
+.save-img {
+  max-width: 100%;
+  max-height: 62vh;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.save-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button class="tb-btn tb-primary" id="exportBtn" type="button" onclick="exportImage()">💾 Сохранить PNG</button>
+  <button class="tb-btn" id="addGroupBtn" type="button" onclick="addGroup()">+ группа</button>
+  <div class="cur-switch" role="group" aria-label="Валюта">
+    <button class="cur-btn active" type="button" data-cur="RUB" title="Российский рубль">₽</button>
+    <button class="cur-btn" type="button" data-cur="BYN" title="Белорусский рубль">BYN</button>
+  </div>
+  <p class="tb-note">✦ Кликните на любой текст, чтобы редактировать · наведите на строку/группу, чтобы удалить</p>
+</div>
+
+<div class="controls">
+  <div class="ctrl">
+    <span class="ctrl-label">Логотип</span>
+    <div class="logo-picks" id="logoPicks"></div>
+    <label class="ctrl-upload">↑ свой<input type="file" id="logoUpload" accept="image/*"></label>
+  </div>
+  <div class="ctrl">
+    <span class="ctrl-label">Картинка</span>
+    <label class="ctrl-upload">↑ фото шапки<input type="file" id="headerUpload" accept="image/*"></label>
+  </div>
+</div>
+
+<div class="scale-wrap" id="scaleWrap">
+<div class="card-positioner" id="cardPos">
+
+  <div class="promo-card" id="promoCard">
+
+    <!-- Шапка (загружаемое изображение) -->
+    <div class="promo-header">
+      <img class="promo-header-img" id="headerImg" src="promo-assets/headers/primera.jpg" alt=""/>
+    </div>
+
+    <!-- Логотип бренда -->
+    <div class="promo-logo" id="promoLogo">
+      <img id="logoImg" src="promo-assets/logos/primera.svg" alt="Primera"/>
+    </div>
+
+    <!-- Контент -->
+    <div class="promo-content">
+
+      <div class="promo-head">
+        <div class="promo-badge">
+          <span class="promo-badge-icon">
+            <svg viewBox="0 0 26.5211 35.7882" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14.6536 1.04212C14.7669 0.051606 13.4567 -0.402681 12.9324 0.445323L0.140933 21.1366C-0.243466 21.7584 0.203791 22.5608 0.934812 22.5608H12.2144C12.7719 22.5608 13.205 23.0462 13.1417 23.6001L11.8674 34.7461C11.7542 35.7366 13.0644 36.1909 13.5886 35.3429L26.3801 14.6515C26.7645 14.0297 26.3173 13.2274 25.5863 13.2274H14.3067C13.7492 13.2274 13.316 12.7419 13.3794 12.1881L14.6536 1.04212Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="promo-badge-text" contenteditable="true" spellcheck="false">До 30 сентября</span>
+        </div>
+        <div class="promo-title" contenteditable="true" spellcheck="false">А у нас ещё премьера — Primera!</div>
+      </div>
+
+      <div class="promo-groups" id="promoGroups">
+
+        <div class="promo-group">
+          <div class="promo-group-title" contenteditable="true" spellcheck="false">Инверторные модели</div>
+          <div class="promo-rows">
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-07TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">16 660 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-09TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">17 780 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-12TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">19 390 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-18TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">33 670 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-24TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">43 050 ₽</span></div>
+          </div>
+        </div>
+
+        <div class="promo-group">
+          <div class="promo-group-title" contenteditable="true" spellcheck="false">Постоянная производительность</div>
+          <div class="promo-rows">
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-07TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">11 690 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-09TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">12 950 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-12TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">17 640 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-18TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">29 120 ₽</span></div>
+            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-24TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">36 610 ₽</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /promo-card -->
+
+</div><!-- /card-positioner -->
+</div><!-- /scale-wrap -->
+
+<script>
+// ── ПРЕВЬЮ-МАСШТАБ: вписываем карточку 1080×1920 в окно ──
+const CARD_W = 1080, CARD_H = 1920;
+function fitPreview() {
+  const availW = window.innerWidth - 24;
+  const availH = window.innerHeight - 64;
+  const s = Math.min(availW / CARD_W, availH / CARD_H, 0.55);
+  const wrap = document.getElementById('scaleWrap');
+  const pos  = document.getElementById('cardPos');
+  wrap.style.width  = (CARD_W * s) + 'px';
+  wrap.style.height = (CARD_H * s) + 'px';
+  pos.style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fitPreview);
+document.fonts.ready.then(fitPreview);
+fitPreview();
+
+// ── ВАЛЮТА ──
+const CURRENCIES = { RUB: '₽', BYN: 'BYN' };
+let currency = 'RUB';
+function curSymbol() { return CURRENCIES[currency]; }
+
+function formatPriceText(el) {
+  const n = parseInt(el.textContent.replace(/\D/g, ''));
+  el.textContent = (!isNaN(n) && n > 0) ? n.toLocaleString('ru-RU') + ' ' + curSymbol() : '';
+}
+function setCurrency(cur) {
+  if (!CURRENCIES[cur]) return;
+  currency = cur;
+  document.querySelectorAll('.promo-price').forEach(formatPriceText);
+  document.querySelectorAll('.cur-btn').forEach(b => b.classList.toggle('active', b.dataset.cur === cur));
+}
+document.querySelectorAll('.cur-btn').forEach(btn =>
+  btn.addEventListener('click', () => setCurrency(btn.dataset.cur)));
+
+// ── РЕДАКТИРОВАНИЕ ЦЕНЫ (contenteditable, только цифры) ──
+function attachPriceCE(el) {
+  if (el.dataset.bound) return;
+  el.dataset.bound = '1';
+  el.setAttribute('data-ph', '0 000 ' + curSymbol());
+  el.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) return;
+    if (e.key === 'Enter') { e.preventDefault(); this.blur(); return; }
+    const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
+  });
+  el.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const t = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+    if (t) document.execCommand('insertText', false, t);
+  });
+  el.addEventListener('focus', function() {
+    this.textContent = this.textContent.replace(/[^\d]/g, '');
+  });
+  el.addEventListener('blur', function() { formatPriceText(this); });
+}
+
+// ── ЛИМИТЫ ──
+const MAX_GROUPS = 2;   // не больше 2 групп
+const MAX_ROWS   = 5;   // не больше 5 позиций в группе
+
+function updateLimits() {
+  document.querySelectorAll('.promo-group').forEach(g => {
+    const rows = g.querySelectorAll('.promo-row').length;
+    const addR = g.querySelector('.p-add-row');
+    if (addR) addR.style.display = (rows >= MAX_ROWS) ? 'none' : '';
+  });
+  const addG = document.getElementById('addGroupBtn');
+  if (addG) addG.style.display =
+    (document.querySelectorAll('.promo-group').length >= MAX_GROUPS) ? 'none' : '';
+}
+
+// ── ИНЛАЙН-КОНТРОЛЫ ──
+function makeBtn(cls, html, title) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = cls + ' no-export';
+  b.innerHTML = html;
+  if (title) b.title = title;
+  return b;
+}
+
+function newRow() {
+  const row = document.createElement('div');
+  row.className = 'promo-row';
+  row.innerHTML =
+    '<span class="promo-model" contenteditable="true" spellcheck="false" data-ph="Модель"></span>' +
+    '<span class="promo-price" contenteditable="true" spellcheck="false"></span>';
+  decorateRow(row);
+  return row;
+}
+
+function decorateRow(row) {
+  const price = row.querySelector('.promo-price');
+  if (price) attachPriceCE(price);
+  const model = row.querySelector('.promo-model');
+  if (model && !model.getAttribute('data-ph')) model.setAttribute('data-ph', 'Модель');
+  if (!row.querySelector('.p-row-del')) {
+    const del = makeBtn('p-row-del', '×', 'Удалить строку');
+    del.addEventListener('click', () => {
+      const rows = row.parentNode;
+      if (rows.querySelectorAll('.promo-row').length > 1) { row.remove(); updateLimits(); }
+    });
+    row.appendChild(del);
+  }
+}
+
+function decorateGroup(group) {
+  group.querySelectorAll('.promo-row').forEach(decorateRow);
+  const rows = group.querySelector('.promo-rows');
+
+  if (!group.querySelector('.p-add-row')) {
+    const addR = makeBtn('p-add-row', '+ строка');
+    addR.addEventListener('click', () => {
+      if (rows.querySelectorAll('.promo-row').length >= MAX_ROWS) return;
+      rows.appendChild(newRow());
+      updateLimits();
+    });
+    rows.insertAdjacentElement('afterend', addR);
+  }
+  if (!group.querySelector('.p-group-del')) {
+    const delG = makeBtn('p-group-del', '×', 'Удалить группу');
+    delG.addEventListener('click', () => {
+      if (document.querySelectorAll('.promo-group').length > 1) { group.remove(); updateLimits(); }
+    });
+    group.appendChild(delG);
+  }
+  const title = group.querySelector('.promo-group-title');
+  if (title && !title.getAttribute('data-ph')) title.setAttribute('data-ph', 'Заголовок группы');
+}
+
+function addGroup() {
+  if (document.querySelectorAll('.promo-group').length >= MAX_GROUPS) return;
+  const g = document.createElement('div');
+  g.className = 'promo-group';
+  g.innerHTML =
+    '<div class="promo-group-title" contenteditable="true" spellcheck="false" data-ph="Заголовок группы"></div>' +
+    '<div class="promo-rows"></div>';
+  document.getElementById('promoGroups').appendChild(g);
+  decorateGroup(g);
+  g.querySelector('.promo-rows').appendChild(newRow());
+  updateLimits();
+}
+
+// Инициализация: декорируем существующие группы/строки и добавляем кнопку «+ группа»
+(function initPromoEditing() {
+  document.querySelectorAll('.promo-group').forEach(decorateGroup);
+  updateLimits();
+})();
+
+// ── КАСТОМИЗАЦИЯ: ЛОГОТИП / КАРТИНКА ──
+// Фон пока фиксированный (зелёный). Возврат выбора цвета — вернуть контрол .ctrl «Фон»
+// и рендер свотчей из BG_PRESETS; функция setBg остаётся рабочей.
+// Библиотека логотипов. Добавить бренд = одна строка (файл в promo-assets/logos/).
+const LOGOS = [
+  { name: 'Primera', src: 'promo-assets/logos/primera.svg' },
+];
+
+function hexLuminance(hex) {
+  const c = hex.replace('#', '');
+  if (c.length !== 6) return 0;
+  const r = parseInt(c.substr(0,2),16)/255, g = parseInt(c.substr(2,2),16)/255, b = parseInt(c.substr(4,2),16)/255;
+  const f = x => x <= 0.03928 ? x/12.92 : Math.pow((x+0.055)/1.055, 2.4);
+  return 0.2126*f(r) + 0.7152*f(g) + 0.0722*f(b);
+}
+// Меняем фон и авто-подбираем контрастный цвет текста (белый/тёмный)
+function setBg(color) {
+  const root = document.documentElement;
+  root.style.setProperty('--promo-bg', color);
+  root.style.setProperty('--promo-fg', hexLuminance(color) > 0.55 ? '#1a1a1a' : '#ffffff');
+  document.querySelectorAll('.swatch').forEach(s =>
+    s.classList.toggle('active', s.dataset.color === color.toLowerCase()));
+  const cust = document.getElementById('bgCustom');
+  if (cust && /^#[0-9a-f]{6}$/i.test(color)) cust.value = color;
+}
+function setLogo(src, fromPreset) {
+  document.getElementById('logoImg').src = src;
+  document.querySelectorAll('.logo-pick').forEach(p =>
+    p.classList.toggle('active', fromPreset && p.dataset.src === src));
+}
+// Загрузка фото шапки — с уменьшением до 2000px, чтобы экспорт не тяжелел
+function loadHeaderFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const maxDim = 2000;
+      let w = im.naturalWidth, h = im.naturalHeight;
+      if (Math.max(w, h) > maxDim) { const k = maxDim / Math.max(w, h); w = Math.round(w*k); h = Math.round(h*k); }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(im, 0, 0, w, h);
+      document.getElementById('headerImg').src = c.toDataURL('image/jpeg', 0.9);
+    };
+    im.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+// Загрузка логотипа — как есть (сохраняем SVG/прозрачность PNG)
+function loadLogoFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => setLogo(reader.result, false);
+  reader.readAsDataURL(file);
+}
+
+(function initCustomize() {
+  const lp = document.getElementById('logoPicks');
+  LOGOS.forEach((lg, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'logo-pick' + (i === 0 ? ' active' : '');
+    b.dataset.src = lg.src;
+    b.title = lg.name;
+    const im = document.createElement('img');
+    im.src = lg.src; im.alt = lg.name;
+    b.appendChild(im);
+    b.addEventListener('click', () => setLogo(lg.src, true));
+    lp.appendChild(b);
+  });
+  const hu = document.getElementById('headerUpload');
+  if (hu) hu.addEventListener('change', e => { if (e.target.files[0]) loadHeaderFile(e.target.files[0]); e.target.value = ''; });
+  const lu = document.getElementById('logoUpload');
+  if (lu) lu.addEventListener('change', e => { if (e.target.files[0]) loadLogoFile(e.target.files[0]); e.target.value = ''; });
+  setBg('#29ba73');
+})();
+
+// ── ЭКСПОРТ PNG ──
+function isIOS() {
+  return /iP(hone|od|ad)/.test(navigator.userAgent) ||
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// Растеризуем внешнюю картинку (raster или svg) в data-URL через same-origin canvas.
+// w/h задаём явно: для фото — натуральный размер (аспект сохраняется, object-fit доработает
+// html2canvas), для SVG-лого — размер бокса ×множитель для чёткости.
+function rasterize(img, w, h, mime, quality) {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = v => { if (!done) { done = true; resolve(v); } };
+    const draw = (src) => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(w));
+        c.height = Math.max(1, Math.round(h));
+        c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+        finish(c.toDataURL(mime, quality));
+      } catch (e) { finish(null); }
+    };
+    try {
+      if (!img) return finish(null);
+      const src = img.currentSrc || img.src;
+      const isSvg = /\.svg($|\?)/i.test(src) || src.startsWith('data:image/svg');
+      if (img.complete && (img.naturalWidth > 0 || isSvg)) return draw(img);
+      const im = new Image();
+      im.onload = () => draw(im);
+      im.onerror = () => finish(null);
+      im.src = src;
+    } catch (e) { finish(null); }
+    setTimeout(() => finish(null), 4000);
+  });
+}
+
+function saveCanvas(canvas, fileName, mime) {
+  return new Promise(resolve => {
+    canvas.toBlob(blob => {
+      if (!blob) { showSaveOverlay(canvas.toDataURL(mime), null); return resolve(); }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      if (('download' in a) && !isIOS()) {
+        a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        return resolve();
+      }
+      const file = new File([blob], fileName, { type: mime });
+      const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+      showSaveOverlay(url, canShare ? file : null);
+      resolve();
+    }, mime);
+  });
+}
+
+function showSaveOverlay(imgUrl, shareFile) {
+  const ov = document.createElement('div');
+  ov.className = 'save-overlay';
+  const box = document.createElement('div');
+  box.className = 'save-box';
+
+  const hint = document.createElement('p');
+  hint.className = 'save-hint';
+  hint.textContent = shareFile
+    ? 'Нажмите «Сохранить в Фото» — или удерживайте картинку и выберите «Добавить в фото».'
+    : 'Удерживайте картинку и выберите «Добавить в фото».';
+
+  const img = document.createElement('img');
+  img.className = 'save-img';
+  img.src = imgUrl;
+
+  const btns = document.createElement('div');
+  btns.className = 'save-btns';
+  if (shareFile) {
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'tb-btn tb-primary';
+    shareBtn.textContent = '📤 Сохранить в Фото';
+    shareBtn.onclick = async () => { try { await navigator.share({ files: [shareFile] }); } catch (e) {} };
+    btns.appendChild(shareBtn);
+  }
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'tb-btn';
+  closeBtn.textContent = 'Закрыть';
+  closeBtn.onclick = () => { ov.remove(); if (imgUrl.startsWith('blob:')) URL.revokeObjectURL(imgUrl); };
+  btns.appendChild(closeBtn);
+
+  box.appendChild(hint);
+  box.appendChild(img);
+  box.appendChild(btns);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+}
+
+async function exportImage() {
+  const btn = document.getElementById('exportBtn');
+  if (btn) { btn.textContent = 'Рендеринг…'; btn.disabled = true; }
+
+  await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 300));
+
+  const card = document.getElementById('promoCard');
+  const headerImg = document.getElementById('headerImg');
+  const logoImg = document.getElementById('logoImg');
+  const origHeader = headerImg ? headerImg.getAttribute('src') : null;
+  const origLogo = logoImg ? logoImg.getAttribute('src') : null;
+
+  // Снимаем фокус, чтобы каретка/плейсхолдеры не попали в кадр
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
+  // Инлайним внешние картинки в data-URL (иначе html2canvas «пачкает» холст на iOS)
+  const hW = headerImg && headerImg.naturalWidth  ? headerImg.naturalWidth  : 2064;
+  const hH = headerImg && headerImg.naturalHeight ? headerImg.naturalHeight : 1267;
+  const hData = await rasterize(headerImg, hW, hH, 'image/jpeg', 0.95);
+  if (hData) headerImg.src = hData;
+  // SVG-лого растеризуем по боксу; растровое (загруженное) — по натуральному размеру,
+  // object-fit: contain доработает вписывание в html2canvas
+  const logoSvg = /\.svg($|\?)/i.test(origLogo || '') || (origLogo || '').startsWith('data:image/svg');
+  const lw = logoSvg ? 302 * 4 : (logoImg.naturalWidth || 302);
+  const lh = logoSvg ? Math.round(64.0118 * 4) : (logoImg.naturalHeight || 64);
+  const lData = await rasterize(logoImg, lw, lh, 'image/png');
+  if (lData) logoImg.src = lData;
+  await new Promise(r => setTimeout(r, 60));
+
+  const bg = getComputedStyle(card).backgroundColor || '#29ba73';
+
+  // Сбрасываем превью-масштаб на 1:1 — иначе html2canvas снимет трансформированный элемент
+  const pos = document.getElementById('cardPos');
+  const wrap = document.getElementById('scaleWrap');
+  const savedTransform = pos.style.transform;
+  const savedW = wrap.style.width, savedH = wrap.style.height;
+  pos.style.transform = 'scale(1)';
+  wrap.style.width = CARD_W + 'px';
+  wrap.style.height = CARD_H + 'px';
+  await new Promise(r => setTimeout(r, 30));
+
+  try {
+    const canvas = await Promise.race([
+      html2canvas(card, {
+        scale: 2,
+        useCORS: false,
+        allowTaint: true,
+        imageTimeout: 10000,
+        backgroundColor: bg,
+        width: 1080,
+        height: 1920,
+        windowWidth: 1080,
+        logging: false,
+        ignoreElements: (el) => el.classList && (
+          el.classList.contains('no-export') || el.classList.contains('save-overlay')
+        ),
+      }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Таймаут рендеринга (20с)')), 20000)),
+    ]);
+    await saveCanvas(canvas, 'primera_promo.png', 'image/png');
+  } catch (e) {
+    alert('Ошибка: ' + e.message);
+  }
+
+  if (headerImg && origHeader) headerImg.src = origHeader;
+  if (logoImg && origLogo) logoImg.src = origLogo;
+  pos.style.transform = savedTransform;
+  wrap.style.width = savedW;
+  wrap.style.height = savedH;
+  if (btn) { btn.textContent = '💾 Сохранить PNG'; btn.disabled = false; }
+}
+</script>
+</body>
+</html>
