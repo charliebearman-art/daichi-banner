@@ -25,8 +25,9 @@
 
 :root {
   --font: 'Suisse Intl', sans-serif;
-  --promo-bg: #29ba73;      /* зелёный фон акции */
-  --promo-fg: #ffffff;      /* цвет текста */
+  --promo-bg: #29ba73;      /* фон акции (тема бренда) */
+  --promo-fg: #ffffff;      /* цвет текста (тема бренда) */
+  --promo-accent: #ffffff;  /* акцент — вторая строка заголовка (тема бренда) */
   --card-w: 1080px;
   --card-h: 1920px;
 }
@@ -136,15 +137,15 @@ body {
   white-space: nowrap;
   outline: none;
 }
-.promo-title {
+.promo-title { width: 100%; text-align: center; }
+.promo-title-1, .promo-title-2 {
   font-weight: 500;
   font-size: 64px;
   line-height: 1.2;
-  color: var(--promo-fg);
-  text-align: center;
-  width: 100%;
   outline: none;
 }
+.promo-title-1 { color: var(--promo-fg); }
+.promo-title-2 { color: var(--promo-accent); }
 
 /* Группы позиций */
 .promo-groups {
@@ -203,10 +204,12 @@ body {
 [contenteditable].promo-model:empty::before,
 [contenteditable].promo-price:empty::before,
 [contenteditable].promo-group-title:empty::before,
-[contenteditable].promo-title:empty::before,
+[contenteditable].promo-title-1:empty::before,
+[contenteditable].promo-title-2:empty::before,
 [contenteditable].promo-badge-text:empty::before {
   content: attr(data-ph);
-  color: rgba(255,255,255,0.5);
+  color: var(--promo-fg);
+  opacity: 0.45;
 }
 
 /* ── ИНЛАЙН-КОНТРОЛЫ РЕДАКТИРОВАНИЯ (не попадают в экспорт) ── */
@@ -218,9 +221,9 @@ body {
   transform: translateY(-50%);
   width: 44px; height: 44px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.55);
-  background: rgba(0,0,0,0.18);
-  color: #fff;
+  border: 2px solid var(--promo-fg);
+  background: transparent;
+  color: var(--promo-fg);
   font-size: 26px;
   line-height: 1;
   cursor: pointer;
@@ -236,17 +239,18 @@ body {
 .p-add-row {
   align-self: flex-start;
   margin-top: 4px;
-  background: rgba(255,255,255,0.14);
-  color: #fff;
-  border: 1.5px dashed rgba(255,255,255,0.55);
+  background: transparent;
+  color: var(--promo-fg);
+  border: 1.5px dashed var(--promo-fg);
   border-radius: 12px;
   padding: 8px 18px;
   font-size: 24px;
   font-family: var(--font);
   cursor: pointer;
-  transition: background 0.15s;
+  opacity: 0.7;
+  transition: opacity 0.15s;
 }
-.p-add-row:hover { background: rgba(255,255,255,0.26); }
+.p-add-row:hover { opacity: 1; }
 
 .promo-group { position: relative; }
 .p-group-del {
@@ -255,9 +259,9 @@ body {
   top: 4px;
   width: 44px; height: 44px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.55);
-  background: rgba(0,0,0,0.18);
-  color: #fff;
+  border: 2px solid var(--promo-fg);
+  background: transparent;
+  color: var(--promo-fg);
   font-size: 24px;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -283,6 +287,39 @@ body {
   transition: background 0.15s;
 }
 .p-add-group:hover { background: rgba(255,255,255,0.26); }
+
+/* ── ПИКЕР БРЕНДОВ ── */
+.brand-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.brand-picker-label {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin-right: 2px;
+}
+.brand-btn {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 22px;
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 100px;
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.brand-btn:hover { border-color: #fff; color: #fff; }
+.brand-btn.active { background: #fff; color: #1a1a1a; border-color: #fff; }
 
 /* ── ТУЛБАР ── */
 .toolbar {
@@ -449,6 +486,10 @@ body {
 </head>
 <body>
 
+<div class="brand-picker" id="brandPicker">
+  <span class="brand-picker-label">Бренд</span>
+</div>
+
 <div class="toolbar">
   <button class="tb-btn tb-primary" id="exportBtn" type="button" onclick="exportImage()">💾 Сохранить PNG</button>
   <button class="tb-btn" id="addGroupBtn" type="button" onclick="addGroup()">+ группа</button>
@@ -460,10 +501,9 @@ body {
 </div>
 
 <div class="controls">
-  <div class="ctrl">
+  <div class="ctrl" id="logoCtrl">
     <span class="ctrl-label">Логотип</span>
-    <div class="logo-picks" id="logoPicks"></div>
-    <label class="ctrl-upload">↑ свой<input type="file" id="logoUpload" accept="image/*"></label>
+    <label class="ctrl-upload">↑ свой логотип<input type="file" id="logoUpload" accept="image/*"></label>
   </div>
   <div class="ctrl">
     <span class="ctrl-label">Картинка</span>
@@ -496,36 +536,16 @@ body {
               <path d="M14.6536 1.04212C14.7669 0.051606 13.4567 -0.402681 12.9324 0.445323L0.140933 21.1366C-0.243466 21.7584 0.203791 22.5608 0.934812 22.5608H12.2144C12.7719 22.5608 13.205 23.0462 13.1417 23.6001L11.8674 34.7461C11.7542 35.7366 13.0644 36.1909 13.5886 35.3429L26.3801 14.6515C26.7645 14.0297 26.3173 13.2274 25.5863 13.2274H14.3067C13.7492 13.2274 13.316 12.7419 13.3794 12.1881L14.6536 1.04212Z" fill="currentColor"/>
             </svg>
           </span>
-          <span class="promo-badge-text" contenteditable="true" spellcheck="false">До 30 сентября</span>
+          <span class="promo-badge-text" id="badgeText" contenteditable="true" spellcheck="false" data-ph="Дата">До 30 сентября</span>
         </div>
-        <div class="promo-title" contenteditable="true" spellcheck="false">А у нас ещё премьера — Primera!</div>
+        <div class="promo-title">
+          <div class="promo-title-1" id="title1" contenteditable="true" spellcheck="false" data-ph="Заголовок"></div>
+          <div class="promo-title-2" id="title2" contenteditable="true" spellcheck="false" data-ph="Вторая строка (акцент)"></div>
+        </div>
       </div>
 
-      <div class="promo-groups" id="promoGroups">
-
-        <div class="promo-group">
-          <div class="promo-group-title" contenteditable="true" spellcheck="false">Инверторные модели</div>
-          <div class="promo-rows">
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-07TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">16 660 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-09TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">17 780 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-12TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">19 390 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-18TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">33 670 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-24TEDA3</span><span class="promo-price" contenteditable="true" spellcheck="false">43 050 ₽</span></div>
-          </div>
-        </div>
-
-        <div class="promo-group">
-          <div class="promo-group-title" contenteditable="true" spellcheck="false">Постоянная производительность</div>
-          <div class="promo-rows">
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-07TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">11 690 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-09TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">12 950 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-12TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">17 640 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-18TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">29 120 ₽</span></div>
-            <div class="promo-row"><span class="promo-model" contenteditable="true" spellcheck="false">Primera PRAW-24TENA3</span><span class="promo-price" contenteditable="true" spellcheck="false">36 610 ₽</span></div>
-          </div>
-        </div>
-
-      </div>
+      <!-- Группы генерируются из конфига бренда (applyBrand) -->
+      <div class="promo-groups" id="promoGroups"></div>
     </div>
 
   </div><!-- /promo-card -->
@@ -683,36 +703,127 @@ function addGroup() {
   updateLimits();
 })();
 
-// ── КАСТОМИЗАЦИЯ: ЛОГОТИП / КАРТИНКА ──
-// Фон пока фиксированный (зелёный). Возврат выбора цвета — вернуть контрол .ctrl «Фон»
-// и рендер свотчей из BG_PRESETS; функция setBg остаётся рабочей.
-// Библиотека логотипов. Добавить бренд = одна строка (файл в promo-assets/logos/).
-const LOGOS = [
-  { name: 'Primera', src: 'promo-assets/logos/primera.svg' },
-];
+// ── БРЕНДЫ ──
+// Каждый бренд = тема (фон/текст/акцент) + шапка + логотип (опц.) + пресет данных.
+// Добавить бренд = один блок сюда + положить шапку/лого в promo-assets/.
+// logo: null → логотип вшит в шапку (как у Midea), накладного нет.
+const BRANDS = {
+  primera: {
+    name: 'Primera',
+    theme: { bg: '#29ba73', fg: '#ffffff', accent: '#ffffff' },
+    header: 'promo-assets/headers/primera.jpg',
+    logo: { src: 'promo-assets/logos/primera.svg', w: 302, h: 64.06, top: 64 },
+    title1: 'А у нас ещё премьера —',
+    title2: 'Primera!',
+    date: 'До 30 сентября',
+    groups: [
+      { title: 'Инверторные модели', rows: [
+        ['Primera PRAW-07TEDA3', '16 660 ₽'], ['Primera PRAW-09TEDA3', '17 780 ₽'],
+        ['Primera PRAW-12TEDA3', '19 390 ₽'], ['Primera PRAW-18TEDA3', '33 670 ₽'],
+        ['Primera PRAW-24TEDA3', '43 050 ₽'] ] },
+      { title: 'Постоянная производительность', rows: [
+        ['Primera PRAW-07TENA3', '11 690 ₽'], ['Primera PRAW-09TENA3', '12 950 ₽'],
+        ['Primera PRAW-12TENA3', '17 640 ₽'], ['Primera PRAW-18TENA3', '29 120 ₽'],
+        ['Primera PRAW-24TENA3', '36 610 ₽'] ] },
+    ],
+  },
+  kentatsu: {
+    name: 'Kentatsu',
+    theme: { bg: '#120202', fg: '#ffffff', accent: '#ff0b4d' },
+    header: 'promo-assets/headers/kentatsu.jpg',
+    logo: { src: 'promo-assets/logos/kentatsu.svg', w: 302, h: 44.195, top: 74 },
+    title1: 'Спеццены',
+    title2: 'на Kentatsu Кумо (Kumo)',
+    date: 'До 30 сентября',
+    groups: [
+      { title: 'Инверторные модели', rows: [
+        ['KSGKU21HZRN1 / KSRKU21HZRN1', '19 080 ₽'], ['KSGKU26HZRN1 / KSRKU26HZRN1', '20 952 ₽'],
+        ['KSGKU35HZRN1 / KSRKU35HZRN1', '25 560 ₽'], ['KSGKU50HZRN1 / KSRKU50HZRN1', '46 008 ₽'],
+        ['KSGKU70HZRN1 / KSRKU70HZRN1', '57 600 ₽'] ] },
+      { title: 'Постоянная производительность', rows: [
+        ['KSGKU21HFRN1 / KSRKU21HFRN1', '14 630 ₽'], ['KSGKU26HFRN1 / KSRKU26HFRN1', '16 030 ₽'],
+        ['KSGKU35HFRN1 / KSRKU35HFRN1', '20 510 ₽'], ['KSGKU53HFRN1 / KSRKU53HFRN1', '34 930 ₽'],
+        ['KSGKU70HFRN1 / KSRKU70HFRN1', '44 030 ₽'] ] },
+    ],
+  },
+  midea: {
+    name: 'Midea',
+    theme: { bg: '#ffffff', fg: '#1a1a1a', accent: '#32a4fd' },
+    header: 'promo-assets/headers/midea.jpg',
+    logo: null,   // логотип Midea вшит в шапку
+    title1: 'Спеццены',
+    title2: 'на Midea Изи (Easy)',
+    date: 'До 30 сентября',
+    groups: [
+      { title: 'Инверторные модели', rows: [
+        ['MSES1S-07FRN8G1/MOES1-07FRN8G1', '20 016 ₽'], ['MSES1S-09FRN8G1/MOES1-09FRN8G1', '21 816 ₽'],
+        ['MSES1S-12FRN8G1/MOES1-12FRN8G1', '26 856 ₽'], ['MSES1S-18FRN8G1/MOES1-18FRN8G1', '48 312 ₽'],
+        ['MSES1S-24FRN8G1/MOES1-24FRN8G1', '60 408 ₽'] ] },
+      { title: 'Постоянная производительность', rows: [
+        ['MSES1-07HRN8G1/MOES1-07HRN8G1', '17 280 ₽'], ['MSES1-09HRN8G1/MOES1-09HRN8G2', '18 792 ₽'],
+        ['MSES1-12HRN8G1/MOES1-12HRN8G3', '24 048 ₽'], ['MSES1-18HRN8G1/MOES1-18HRN8G4', '41 256 ₽'],
+        ['MSES1-24HRN8G1/MOES1-24HRN8G5', '52 056 ₽'] ] },
+    ],
+  },
+};
+const BRAND_ORDER = ['primera', 'kentatsu', 'midea'];
+let currentBrand = 'primera';
 
-function hexLuminance(hex) {
-  const c = hex.replace('#', '');
-  if (c.length !== 6) return 0;
-  const r = parseInt(c.substr(0,2),16)/255, g = parseInt(c.substr(2,2),16)/255, b = parseInt(c.substr(4,2),16)/255;
-  const f = x => x <= 0.03928 ? x/12.92 : Math.pow((x+0.055)/1.055, 2.4);
-  return 0.2126*f(r) + 0.7152*f(g) + 0.0722*f(b);
-}
-// Меняем фон и авто-подбираем контрастный цвет текста (белый/тёмный)
-function setBg(color) {
+// Применяем бренд: тема, шапка, логотип, тексты и пресет данных
+function applyBrand(key) {
+  const b = BRANDS[key];
+  if (!b) return;
+  currentBrand = key;
   const root = document.documentElement;
-  root.style.setProperty('--promo-bg', color);
-  root.style.setProperty('--promo-fg', hexLuminance(color) > 0.55 ? '#1a1a1a' : '#ffffff');
-  document.querySelectorAll('.swatch').forEach(s =>
-    s.classList.toggle('active', s.dataset.color === color.toLowerCase()));
-  const cust = document.getElementById('bgCustom');
-  if (cust && /^#[0-9a-f]{6}$/i.test(color)) cust.value = color;
+  root.style.setProperty('--promo-bg', b.theme.bg);
+  root.style.setProperty('--promo-fg', b.theme.fg);
+  root.style.setProperty('--promo-accent', b.theme.accent);
+
+  document.getElementById('headerImg').src = b.header;
+
+  const logoWrap = document.getElementById('promoLogo');
+  const logoImg = document.getElementById('logoImg');
+  const logoCtrl = document.getElementById('logoCtrl');
+  if (b.logo) {
+    logoWrap.style.display = '';
+    logoWrap.style.width  = b.logo.w + 'px';
+    logoWrap.style.height = b.logo.h + 'px';
+    logoWrap.style.top    = b.logo.top + 'px';
+    logoImg.src = b.logo.src;
+    if (logoCtrl) logoCtrl.style.display = '';
+  } else {
+    logoWrap.style.display = 'none';       // логотип в шапке
+    if (logoCtrl) logoCtrl.style.display = 'none';
+  }
+
+  document.getElementById('title1').textContent = b.title1 || '';
+  document.getElementById('title2').textContent = b.title2 || '';
+  document.getElementById('badgeText').textContent = b.date || '';
+
+  const gw = document.getElementById('promoGroups');
+  gw.innerHTML = '';
+  b.groups.forEach(g => {
+    const group = document.createElement('div');
+    group.className = 'promo-group';
+    group.innerHTML = '<div class="promo-group-title" contenteditable="true" spellcheck="false" data-ph="Заголовок группы"></div><div class="promo-rows"></div>';
+    group.querySelector('.promo-group-title').textContent = g.title;
+    const rows = group.querySelector('.promo-rows');
+    g.rows.forEach(([model, price]) => {
+      const row = document.createElement('div');
+      row.className = 'promo-row';
+      row.innerHTML = '<span class="promo-model" contenteditable="true" spellcheck="false" data-ph="Модель"></span><span class="promo-price" contenteditable="true" spellcheck="false"></span>';
+      row.querySelector('.promo-model').textContent = model;
+      row.querySelector('.promo-price').textContent = price;
+      rows.appendChild(row);
+    });
+    gw.appendChild(group);
+    decorateGroup(group);
+  });
+  updateLimits();
+  document.querySelectorAll('.promo-price').forEach(formatPriceText); // под текущую валюту
+  document.querySelectorAll('.brand-btn').forEach(x => x.classList.toggle('active', x.dataset.brand === key));
 }
-function setLogo(src, fromPreset) {
-  document.getElementById('logoImg').src = src;
-  document.querySelectorAll('.logo-pick').forEach(p =>
-    p.classList.toggle('active', fromPreset && p.dataset.src === src));
-}
+
 // Загрузка фото шапки — с уменьшением до 2000px, чтобы экспорт не тяжелел
 function loadHeaderFile(file) {
   const reader = new FileReader();
@@ -734,29 +845,30 @@ function loadHeaderFile(file) {
 // Загрузка логотипа — как есть (сохраняем SVG/прозрачность PNG)
 function loadLogoFile(file) {
   const reader = new FileReader();
-  reader.onload = () => setLogo(reader.result, false);
+  reader.onload = () => { document.getElementById('logoImg').src = reader.result; };
   reader.readAsDataURL(file);
 }
 
 (function initCustomize() {
-  const lp = document.getElementById('logoPicks');
-  LOGOS.forEach((lg, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'logo-pick' + (i === 0 ? ' active' : '');
-    b.dataset.src = lg.src;
-    b.title = lg.name;
-    const im = document.createElement('img');
-    im.src = lg.src; im.alt = lg.name;
-    b.appendChild(im);
-    b.addEventListener('click', () => setLogo(lg.src, true));
-    lp.appendChild(b);
+  // Пикер брендов
+  const bp = document.getElementById('brandPicker');
+  BRAND_ORDER.forEach(key => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'brand-btn';
+    btn.dataset.brand = key;
+    btn.textContent = BRANDS[key].name;
+    btn.addEventListener('click', () => applyBrand(key));
+    bp.appendChild(btn);
   });
+  // Загрузки
   const hu = document.getElementById('headerUpload');
   if (hu) hu.addEventListener('change', e => { if (e.target.files[0]) loadHeaderFile(e.target.files[0]); e.target.value = ''; });
   const lu = document.getElementById('logoUpload');
   if (lu) lu.addEventListener('change', e => { if (e.target.files[0]) loadLogoFile(e.target.files[0]); e.target.value = ''; });
-  setBg('#29ba73');
+  // Начальный бренд из ?brand= или primera
+  const q = new URLSearchParams(location.search).get('brand');
+  applyBrand(BRANDS[q] ? q : 'primera');
 })();
 
 // ── ЭКСПОРТ PNG ──
@@ -874,13 +986,17 @@ async function exportImage() {
   const hH = headerImg && headerImg.naturalHeight ? headerImg.naturalHeight : 1267;
   const hData = await rasterize(headerImg, hW, hH, 'image/jpeg', 0.95);
   if (hData) headerImg.src = hData;
-  // SVG-лого растеризуем по боксу; растровое (загруженное) — по натуральному размеру,
-  // object-fit: contain доработает вписывание в html2canvas
-  const logoSvg = /\.svg($|\?)/i.test(origLogo || '') || (origLogo || '').startsWith('data:image/svg');
-  const lw = logoSvg ? 302 * 4 : (logoImg.naturalWidth || 302);
-  const lh = logoSvg ? Math.round(64.0118 * 4) : (logoImg.naturalHeight || 64);
-  const lData = await rasterize(logoImg, lw, lh, 'image/png');
-  if (lData) logoImg.src = lData;
+  // Логотип инлайним только если он показан (у Midea вшит в шапку — накладного нет).
+  // SVG растеризуем по боксу бренда; растровое (загруженное) — по натуральному размеру,
+  // object-fit: contain доработает вписывание в html2canvas.
+  const logoVisible = getComputedStyle(document.getElementById('promoLogo')).display !== 'none';
+  if (logoVisible) {
+    const logoSvg = /\.svg($|\?)/i.test(origLogo || '') || (origLogo || '').startsWith('data:image/svg');
+    const lw = logoSvg ? (logoImg.offsetWidth || 302) * 4 : (logoImg.naturalWidth || 302);
+    const lh = logoSvg ? (logoImg.offsetHeight || 64) * 4 : (logoImg.naturalHeight || 64);
+    const lData = await rasterize(logoImg, lw, lh, 'image/png');
+    if (lData) logoImg.src = lData;
+  }
   await new Promise(r => setTimeout(r, 60));
 
   const bg = getComputedStyle(card).backgroundColor || '#29ba73';
