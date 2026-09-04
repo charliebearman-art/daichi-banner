@@ -126,14 +126,14 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--promo-fg);
+  color: var(--promo-accent);   /* дата = акцентный цвет бренда */
 }
 .promo-badge-icon svg { height: 35.79px; width: auto; display: block; }
 .promo-badge-text {
   font-weight: 500;
   font-size: 32px;
   line-height: 1.2;
-  color: var(--promo-fg);
+  color: var(--promo-accent);   /* дата = акцентный цвет бренда */
   white-space: nowrap;
   outline: none;
 }
@@ -765,8 +765,27 @@ const BRANDS = {
         ['MSES1-24HRN8G1/MOES1-24HRN8G5', '52 056 ₽'] ] },
     ],
   },
+  daichi: {
+    name: 'Daichi',
+    theme: { bg: '#ffffff', fg: '#1a1a1a', accent: '#997b4d' },
+    header: 'promo-assets/headers/daichi.jpg',
+    logo: { src: 'promo-assets/logos/daichi.svg', w: 309.732, h: 56, top: 68 },
+    title1: 'Спеццены',
+    title2: 'на Daichi Альпайн (Alpine)',
+    date: 'До 30 сентября',
+    groups: [
+      { title: 'Инверторные модели', rows: [
+        ['ALP20AVQS1R / ALP20FVS1R', '18 500 ₽'], ['ALP25AVQS1R / ALP25FVS1R', '20 276 ₽'],
+        ['ALP35AVQS1R / ALP35FVS1R', '24 938 ₽'], ['ALP50AVQS1R / ALP50FVS1R', '44 696 ₽'],
+        ['ALP70AVQS1R / ALP70FVS1R', '56 018 ₽'] ] },
+      { title: 'Постоянная производительность', rows: [
+        ['ALP20AVQ1R-1 / ALP20FV1R-1', '15 022 ₽'], ['ALP25AVQ1R-1 / ALP25FV1R-1', '16 724 ₽'],
+        ['ALP35AVQ1R-1 / ALP35FV1R-1', '21 016 ₽'], ['ALP50AVQ1R-1 / ALP50FV1R-1', '36 038 ₽'],
+        ['ALP70AVQ1R-1 / ALP70FV1R-1', '45 436 ₽'] ] },
+    ],
+  },
 };
-const BRAND_ORDER = ['primera', 'kentatsu', 'midea'];
+const BRAND_ORDER = ['primera', 'kentatsu', 'midea', 'daichi'];
 let currentBrand = 'primera';
 
 // Применяем бренд: тема, шапка, логотип, тексты и пресет данных
