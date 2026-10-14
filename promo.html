@@ -102,7 +102,7 @@ body {
   width: 952px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 48px;   /* отступ заголовок → таблица цен */
   align-items: stretch;
 }
 
@@ -146,6 +146,16 @@ body {
 }
 .promo-title-1 { color: var(--promo-fg); }
 .promo-title-2 { color: var(--promo-accent); }
+/* Слоган под заголовком — есть только у брендов с полем slogan */
+.promo-slogan {
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--promo-fg);
+  outline: none;
+}
 
 /* Группы позиций */
 .promo-groups {
@@ -206,6 +216,7 @@ body {
 [contenteditable].promo-group-title:empty::before,
 [contenteditable].promo-title-1:empty::before,
 [contenteditable].promo-title-2:empty::before,
+[contenteditable].promo-slogan:empty::before,
 [contenteditable].promo-badge-text:empty::before {
   content: attr(data-ph);
   color: var(--promo-fg);
@@ -542,6 +553,7 @@ body {
           <div class="promo-title-1" id="title1" contenteditable="true" spellcheck="false" data-ph="Заголовок"></div>
           <div class="promo-title-2" id="title2" contenteditable="true" spellcheck="false" data-ph="Вторая строка (акцент)"></div>
         </div>
+        <div class="promo-slogan" id="slogan" contenteditable="true" spellcheck="false" data-ph="Слоган" style="display:none"></div>
       </div>
 
       <!-- Группы генерируются из конфига бренда (applyBrand) -->
@@ -784,8 +796,27 @@ const BRANDS = {
         ['ALP70AVQ1R-1 / ALP70FV1R-1', '45 436 ₽'] ] },
     ],
   },
+  'daichi-air': {
+    name: 'Daichi Air + Miracle',
+    theme: { bg: '#ffffff', fg: '#000000', accent: '#818181' },
+    header: 'promo-assets/headers/daichi-air-miracle.jpg',
+    logo: { src: 'promo-assets/logos/daichi.svg', w: 309.732, h: 56, top: 68, left: 706 },
+    title1: 'АКЦИЯ',
+    title2: 'Daichi Air + Daichi Miracle',
+    slogan: 'Комфорт в балансе',
+    date: 'До 31 октября',
+    groups: [
+      { title: 'Daichi Air', rows: [
+        ['AIR20AVQ1R / AIR20FV1R', '13 790 ₽'], ['AIR35AVQ1R / AIR35FV1R', '20 650 ₽'],
+        ['AIR50AVQ1R / AIR50FV1R', '31 850 ₽'], ['AIR70AVQ1R / AIR70FV1R', '41 230 ₽'] ] },
+      { title: 'Daichi Miracle', rows: [
+        ['MIR20AVQ1R / MIR20FV1R', '17 850 ₽'], ['MIR25AVQ1R / MIR25FV1R', '19 250 ₽'],
+        ['MIR35AVQ1R / MIR35FV1R', '24 430 ₽'], ['MIR50AVQ1R / MIR50FV1R', '39 130 ₽'],
+        ['MIR70AVQ1R / MIR70FV1R', '48 020 ₽'] ] },
+    ],
+  },
 };
-const BRAND_ORDER = ['primera', 'kentatsu', 'midea', 'daichi'];
+const BRAND_ORDER = ['primera', 'kentatsu', 'midea', 'daichi', 'daichi-air'];
 let currentBrand = 'primera';
 
 // Применяем бренд: тема, шапка, логотип, тексты и пресет данных
@@ -808,6 +839,9 @@ function applyBrand(key) {
     logoWrap.style.width  = b.logo.w + 'px';
     logoWrap.style.height = b.logo.h + 'px';
     logoWrap.style.top    = b.logo.top + 'px';
+    // left задан → логотип стоит в этой точке; иначе по центру (из CSS)
+    logoWrap.style.left      = b.logo.left != null ? b.logo.left + 'px' : '';
+    logoWrap.style.transform = b.logo.left != null ? 'none' : '';
     logoImg.src = b.logo.src;
     if (logoCtrl) logoCtrl.style.display = '';
   } else {
@@ -817,6 +851,9 @@ function applyBrand(key) {
 
   document.getElementById('title1').textContent = b.title1 || '';
   document.getElementById('title2').textContent = b.title2 || '';
+  const slogan = document.getElementById('slogan');
+  slogan.textContent = b.slogan || '';
+  slogan.style.display = b.slogan != null ? '' : 'none';
   document.getElementById('badgeText').textContent = b.date || '';
 
   const gw = document.getElementById('promoGroups');
@@ -1043,7 +1080,9 @@ async function exportImage() {
         windowWidth: 1080,
         logging: false,
         ignoreElements: (el) => el.classList && (
-          el.classList.contains('no-export') || el.classList.contains('save-overlay')
+          el.classList.contains('no-export') || el.classList.contains('save-overlay') ||
+          // пустой слоган не рендерим, чтобы плейсхолдер и лишний отступ не попали в кадр
+          (el.classList.contains('promo-slogan') && !el.textContent.trim())
         ),
       }),
       new Promise((_, rej) => setTimeout(() => rej(new Error('Таймаут рендеринга (20с)')), 20000)),
